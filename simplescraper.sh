@@ -49,7 +49,10 @@ string=$(zenity  --list  --text "What types of files to get?" --checklist  --col
 
 if [[ "$string" == *"$mirror"* ]]; then
     filetypes="mirror"
+	# just put the wget string here, mate.
+
 else
+	# NOT mirroring, just scraping
 	if [[ "$string" == *"$images"* ]]; then
 		filetypes="gif|jpg|jpeg|svg|png|tiff|tif|ico|pbm|pcx"
 	fi
@@ -65,12 +68,17 @@ else
 	if [[ "$string" == *"$video"* ]]; then
 		filetypes="avi|mov|m4v|mpg|mpeg|flv|mkv|wmv|mp4"
 	fi
+
+	# This is done so that if you want to add, remove, or otherwise change filetypes for each category it only has to be done once.
+	WGetString=$(echo "filetypes" | /bin/sed -e 's/|/,/g')
+	GrepString=$(echo "filetypes" | /bin/sed 's/^/|/' | /bin/sed -e 's/|/http.+/g')
+
+
+
+	if [ $OutPutOnly == 1 ]; then
+		wget -r -l1 --no-parent -A "$WGetString" -H -p -e robots=off --no-directories --show-progress --spider --random-wait "$szURL" 2>&1 | grep -Eio '("$GrepString")'
+	else 
+		wget -r -l1 --no-parent -A "$WGetString" -H -p -e robots=off --no-directories --show-progress --wait=10 --directory-prefix="$szSavePath" --random-wait "$szURL"
+	fi
+
 fi
-
-# This is done so that if you want to add, remove, or otherwise change filetypes for each category it only has to be done once.
-WGetString=$(echo "filetypes" | /bin/sed -e 's/|/,/g')
-GrepString=$(echo "filetypes" | /bin/sed 's/^/|/' | /bin/sed -e 's/|/http.+/g')
-
-
-
-if [ $OutPutOnly == 1 ]; then
