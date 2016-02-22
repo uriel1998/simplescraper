@@ -24,7 +24,7 @@ if [ "$1" == "" ]; then
 else
 	szURL="$1"
 fi
-	echo "$szURL"
+	#echo "$szURL"
 
 	if [ "$szURL" == "" ]; then
 		exit 1
@@ -33,6 +33,7 @@ fi
 		website_suck_level=1999
 	else
 		zenity --error --text "Website unreachable!"
+		szURL=""
 	fi
 done;
 
@@ -62,7 +63,7 @@ if [[ "$string" == *"mirror"* ]]; then
 else
 	# NOT mirroring, just scraping
 	if [[ "$string" == *"image"* ]]; then
-		filetypes="gif|jpg|jpeg|svg|png|tiff|tif|ico|pbm|pcx"
+		filetypes="gif|jpg|jpeg|svg|png|tiff|tif"
 	fi
 	if [[ "$string" == *"sound"* ]]; then
 		filetypes="mp3|midi|mod|s3m|wav|ogg|m3u|pls|flac|ape|m4a"
@@ -80,15 +81,12 @@ else
 	# This is done so that if you want to add, remove, or otherwise change filetypes for each category it only has to be done once.
 	WGetString=$(echo "$filetypes" | /bin/sed -e 's/|/,/g')
 	GrepString=$(echo "$filetypes" |  /bin/sed 's/^/|/' | /bin/sed -e 's/|/|http.+/g' | sed 's/^.//' )
-echo "woo"
-echo "$WGetString"
-echo "$GrepString"
-read
 
+	#note to self --page-requisites pulls down requisites of all connected pages.
 	if [ $OutPutOnly == 1 ]; then
-		wget -r -l1 --no-parent -A "$WGetString" -H -p -e robots=off --no-directories --show-progress --spider --random-wait "$szURL" 2>&1 | grep -Eio '("$GrepString")'
+		wget --recursive --level=1 --no-parent --accept "$WGetString" --span-hosts -e robots=off --no-directories --timeout=5 --tries=3 --show-progress --spider --random-wait "$szURL" 2>&1 | /bin/grep -Eio "(\"$GrepString\")"
 	else 
-		wget -r -l1 --no-parent -A "$WGetString" -H -p -e robots=off --no-directories --show-progress --wait=10 --directory-prefix="$szSavePath" --random-wait "$szURL"
+		wget --recursive --level=1 --no-parent --accept "$WGetString" --span-hosts -e robots=off --no-directories --timeout=5 --tries=3 --show-progress --directory-prefix="$szSavePath" --random-wait "$szURL"
 	fi
 
 fi
